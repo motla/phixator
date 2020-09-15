@@ -22,7 +22,7 @@ class PhabricatorTimeTrackerApplication extends PhabricatorApplication
 
     public function isPrototype()
     {
-        return true;
+        return false;
     }
 
     public function getIcon()

@@ -18,11 +18,11 @@ class TimeTrackerLogworkHistoryCurtainExtension extends PHUICurtainExtension
     }
 
     /**
-     * @param ManiphestTask $task
+     * @param $object
      */
-    public function buildCurtainPanel(ManiphestTask $task)
+    public function buildCurtainPanel($object)
     {
-        if (!$xactions = $this->getTaskTimeTransactions($task)) {
+        if (!$xactions = $this->getTaskTimeTransactions($object)) {
             return;
         }
 

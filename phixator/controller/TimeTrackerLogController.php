@@ -34,7 +34,7 @@ class TimeTrackerLogController extends PhabricatorController
      *
      * @return Aphront404Response
      */
-    public function handleRequest()
+    public function handleRequest(AphrontRequest $request)
     {
         $request = $this->getRequest();
         $viewer = $request->getUser();
@@ -46,6 +46,7 @@ class TimeTrackerLogController extends PhabricatorController
         switch ($this->verb) {
             case 'log':
                 $time = trim($request->getStr('time')) ?? false;
+                $break = trim($request->getStr('break')) ?? false;
                 $description = $request->getStr('description') ?? '';
                 $timestamp = AphrontFormDateControlValue::newFromRequest($request, 'started');
 
@@ -62,6 +63,12 @@ class TimeTrackerLogController extends PhabricatorController
                     if ($time && !$this->isTimeFormatCorrect($time)) {
                         $this->formErrors[] = pht(
                             'Spend time is incorrect. Allowed format is: 1w 4d 2h 30m. ' .
+                            'You can specify any those modificators at any order.'
+                        );
+                    }
+                    if ($break && !$this->isTimeFormatCorrect($break)) {
+                        $this->formErrors[] = pht(
+                            'Spend break time is incorrect. Allowed format is: 1w 4d 2h 30m. ' .
                             'You can specify any those modificators at any order.'
                         );
                     }
@@ -82,7 +89,9 @@ class TimeTrackerLogController extends PhabricatorController
                         $transactions[] = id(new ManiphestTransaction())
                             ->setTransactionType('timetracker:log')
                             ->setNewValue([
+                                'phid' => $this->phid,
                                 'spend' => $time,
+                                'break' => $break,
                                 'started' => $timestamp->getEpoch(),
                                 'description' => $description
                             ]);
@@ -93,7 +102,7 @@ class TimeTrackerLogController extends PhabricatorController
                     }
                 }
 
-                return $this->buildAddTimeLogDialog($time, $description, $timestamp->getEpoch());
+                return $this->buildAddTimeLogDialog($time, $break, $description, $timestamp->getEpoch());
 
                 break;
 
@@ -126,6 +135,13 @@ class TimeTrackerLogController extends PhabricatorController
                             'You can specify any those modificators at any order.'
                         );
                     }
+                    if (!$this->isTimeFormatCorrect($breakTime)) {
+                        $this->formErrors[] = pht(
+                            'Break time is incorrect. Allowed format is: 1w 4d 2h 30m. ' .
+                            'You can specify any those modificators at any order.'
+                        );
+                    }
+
 
                     if (!$userPHID) {
                         $this->formErrors[] = pht('Invalid user.');
@@ -185,6 +201,7 @@ class TimeTrackerLogController extends PhabricatorController
 
         return true;
     }
+
 
     /**
      * @param string $phid
@@ -255,7 +272,7 @@ class TimeTrackerLogController extends PhabricatorController
             ->setTitle('Log work edit')
             ->setWidth(AphrontDialogView::WIDTH_FORM)
             ->setErrors([])
-            ->appendParagraph('How much time you spent for work?');
+            ->appendParagraph('How much time did you work?');
 
         $form = id(new AphrontFormView())->setUser($viewer);
 
@@ -275,6 +292,14 @@ class TimeTrackerLogController extends PhabricatorController
                 ->setName('spend_time')
                 ->setLabel('Log time')
                 ->setValue($transaction->getNewValue()['spend'])
+        );
+
+        $form->appendControl(
+            id(new AphrontFormTextControl())
+                ->setUser($viewer)
+                ->setName('Break_time')
+                ->setLabel('Break time')
+                ->setValue($transaction->getNewValue()['break'])
         );
 
         $form->appendControl(
@@ -322,20 +347,21 @@ class TimeTrackerLogController extends PhabricatorController
 
     /**
      * @param string $spendTime
+     * @param string $breakTime
      * @param string $description
      * @param int $timestamp
      *
      * @return AphrontDialogView
      */
-    private function buildAddTimeLogDialog(string $spendTime = '', string $description = '', ?int $timestamp = null)
+    private function buildAddTimeLogDialog(string $spendTime = '',string $breakTime = '', string $description = '', ?int $timestamp = null)
     {
         $viewer = $this->getRequest()->getUser();
 
         $dialog = $this->newDialog()
-            ->setTitle('Log work')
+            ->setTitle('Log Time.')
             ->setWidth(AphrontDialogView::WIDTH_FORM)
             ->setErrors($this->formErrors)
-            ->appendParagraph('How much time you spent for work?');
+            ->appendParagraph('How much time did you work?');
 
         $form = new PHUIFormLayoutView();
         $form->appendChild(
@@ -344,6 +370,13 @@ class TimeTrackerLogController extends PhabricatorController
                 ->setName('time')
                 ->setLabel('Time spent')
                 ->setValue($spendTime)
+        );
+        $form->appendChild(
+            id(new AphrontFormTextControl())
+                ->setUser($viewer)
+                ->setName('break')
+                ->setLabel('Break Time')
+                ->setValue($breakTime)
         );
         $form->appendChild(
             id(new AphrontFormTextAreaControl())

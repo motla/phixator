@@ -14,7 +14,7 @@ class LogTimeItemTransaction extends ManiphestTaskTransactionType
         return hsprintf(
             '%s logged <a href="/phixator/edit/%s/" data-sigil="workflow">%s</a> at %s, %s %s',
             $this->renderAuthor(),
-            $this->getStorage()->getPHID(),
+            $newValue['phid'],
             $newValue['spend'],
             phabricator_date($newValue['started'], $this->getViewer()),
             phabricator_time($newValue['started'], $this->getViewer()),
