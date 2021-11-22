@@ -17,7 +17,7 @@ Task Work Log extension for Phabricator / Phorge
 ## Installation
 
 1. Clone or unzip this repository in the extensions folder of Phabricator in your server (`phabricator/src/extensions`)
-2. Browse the application in Phabricator (`your-url.com/phixator`)
+2. Browse the application in Phabricator (`your-url.com/phixator`) - server restart may be needed
 3. Subscribe/Watch this repository for new releases and bug fixes
 
 ## To do
