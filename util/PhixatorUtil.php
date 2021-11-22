@@ -5,18 +5,6 @@
 class PhixatorUtil {
 
   /**
-   * Get array of PhabricatorUser corresponding to array of PHID
-   * @return array<PhabricatorUser>
-   */
-  public static function getAuthorsByPHIDs(array $PHIDs): array {
-    $out = [];
-    if (!$authors = (new PhabricatorUser())->loadAllWhere('phid in (%Ls)', $PHIDs)) return $out;
-    foreach ($authors as $author) $out[$author->getPHID()] = $author;
-    return $out;
-  }
-
-
-  /**
    * Convert a time log string to corresponding time in minutes
    */
   public static function timeStringToMinutes(string $time): int {
