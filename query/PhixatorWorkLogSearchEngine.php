@@ -115,15 +115,17 @@ final class PhixatorWorkLogSearchEngine extends PhabricatorApplicationSearchEngi
         }
         if(!in_array('author', (array)$query->getParameter('hide'))) {
           $authorPHID = $transaction->getAuthorPHID();
-          $author = (new PhabricatorPeopleQuery())->setViewer($viewer)->withPHIDs([$authorPHID])->executeOne();
-          $authorUrl = (new PhabricatorObjectHandle())
-            ->setType(phid_get_type($authorPHID))
-            ->setPHID($authorPHID)
-            ->setName($author->getFullName())
-            ->setURI('/p/'.$author->getUsername().'/')
-            ->setTagColor(PHUITagView::COLOR_GREY)
-            ->renderTag();
-          $item->addAttribute($authorUrl);
+          $author = head((new PhabricatorPeopleQuery())->setViewer($viewer)->withPHIDs([$authorPHID])->execute());
+          if($author) {
+            $item->addAttribute((new PhabricatorObjectHandle())
+              ->setType(phid_get_type($authorPHID))
+              ->setPHID($authorPHID)
+              ->setName($author->getFullName())
+              ->setURI('/p/'.$author->getUsername().'/')
+              ->setTagColor(PHUITagView::COLOR_GREY)
+              ->renderTag()
+            );
+          }
         }
         if(!in_array('projects', (array)$query->getParameter('hide'))) {
           $task_handles = $task ? ManiphestTaskListView::loadTaskHandles($viewer, [$task]) : [];
@@ -160,20 +162,20 @@ final class PhixatorWorkLogSearchEngine extends PhabricatorApplicationSearchEngi
     foreach ($transactions as $transaction) {
       $task = head((new ManiphestTaskQuery())->withPHIDs([$transaction->getObjectPHID()])->needProjectPHIDs(true)->setViewer($viewer)->execute());
       if(!$task) continue; // if viewer has no more access to the task
-      $space = (new PhabricatorSpacesNamespaceQuery())->withPHIDs([PhabricatorSpacesNamespaceQuery::getObjectSpacePHID($task)])->setViewer($viewer)->executeOne();
+      $space = head((new PhabricatorSpacesNamespaceQuery())->withPHIDs([PhabricatorSpacesNamespaceQuery::getObjectSpacePHID($task)])->setViewer($viewer)->execute());
       $task_handles = ManiphestTaskListView::loadTaskHandles($viewer, [$task]);
       $project_handles = array_select_keys($task_handles, array_reverse($task->getProjectPHIDs()));
       $get_name = function($obj) { return $obj->getFullName(); };
-      $author = (new PhabricatorPeopleQuery())->setViewer($viewer)->withPHIDs([$transaction->getAuthorPHID()])->executeOne();
+      $author = head((new PhabricatorPeopleQuery())->setViewer($viewer)->withPHIDs([$transaction->getAuthorPHID()])->execute());
       $newValue = $transaction->getNewValue();
       $export[] = array(
-        'space' => $space->getNamespaceName(),
+        'space' => $space ? $space->getNamespaceName() : '',
         'date' => date("Y-m-d", $newValue['started']),
         'projects' => implode(" / ", array_map($get_name, $project_handles)),
         'taskMonogram' => $task->getMonogram(),
         'taskTitle' => $task->getTitle(),
         'taskURI' => PhabricatorEnv::getProductionURI($task->getURI()),
-        'author' => $author->getFullName(),
+        'author' => $author ? $author->getFullName() : '',
         'description' => $newValue['description'],
         'spentTime' => PhixatorUtil::minutesToTimeString($newValue['minutes']),
         'spentMinutes' => $newValue['minutes']

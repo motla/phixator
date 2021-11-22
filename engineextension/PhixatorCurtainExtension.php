@@ -40,7 +40,7 @@ class PhixatorCurtainExtension extends PHUICurtainExtension {
 
     // Display all contributing users with their cumulated work times
     foreach ($summarySpendByUser as $authorPHID => $spendMinutes) {
-      $author = (new PhabricatorPeopleQuery())->setViewer($this->getViewer())->withPHIDs([$authorPHID])->executeOne();
+      $author = head((new PhabricatorPeopleQuery())->setViewer($this->getViewer())->withPHIDs([$authorPHID])->execute());
       if(!$author) continue;
       $authorUrl = (new PhabricatorObjectHandle())
         ->setType(phid_get_type($authorPHID))
