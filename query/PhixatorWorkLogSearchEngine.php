@@ -31,8 +31,8 @@ final class PhixatorWorkLogSearchEngine extends PhabricatorApplicationSearchEngi
       (new PhabricatorProjectSearchField())->setLabel(pht('Projects'))->setKey('projectPHIDs')->setAliases(['project', 'projects']),
       (new PhabricatorSpacesSearchField())->setLabel(pht('Spaces'))->setKey('spacePHIDs')->setAliases(['space', 'spaces']),
       (new PhabricatorSearchTextField())->setLabel(pht('Tasks'))->setKey('taskIDs')->setAliases(['task', 'tasks']),
-      (new PhabricatorSearchDateField())->setLabel(pht('After'))->setKey('dateStart')->setAliases(['after']),
-      (new PhabricatorSearchDateField())->setLabel(pht('Before'))->setKey('dateEnd')->setAliases(['before']),
+      (new PhabricatorSearchDateField())->setLabel(pht('After (included)'))->setKey('dateStart')->setAliases(['after']),
+      (new PhabricatorSearchDateField())->setLabel(pht('Before (non included)'))->setKey('dateEnd')->setAliases(['before']),
       (new PhabricatorSearchCheckboxesField())->setLabel(pht('Display'))->setKey('hide')->setOptions(array(
         'space' => pht('Hide Space'),
         'monogram' => pht('Hide Task Monogram'),
